@@ -6,12 +6,6 @@ class Encryptor:
     def __init__(self, text: str) -> None:
         self.text = text
         self.BITS = 17
-        # self.LETTER_SUBSTITUTION_SIZE = {
-        #     2: "хжшюцщэфёъvkxjqz",
-        #     3: "ыьгзбчйypb",
-        #     4: "рвлкмдпуяdlcumwfg",
-        #     5: "оеаинтсetaoinshr",
-        # }
         self.frequency = Counter()
         self.key: dict = self.__make_key()
 
@@ -66,24 +60,6 @@ class Encryptor:
 
         return encryption_key
 
-        # for key, value in self.LETTER_SUBSTITUTION_SIZE.items():
-        #     numbers = sample(
-        #         range(
-        #             10 ** (key - 1),
-        #             10 ** key - 1
-        #         ),
-        #         len(value) * key
-        #     )
-        #
-        #     for index in range(len(value)):
-        #         memory = []
-        #         for _ in range(key):
-        #             memory.append(numbers[0])
-        #             numbers.pop(0)
-        #         encryption_key[value[index]] = memory
-
-        # return encryption_key
-
     def encrypt(self, text: str) -> str:
         text = [letter for letter in text.lower() if letter]
 
@@ -94,22 +70,28 @@ class Encryptor:
                 used_letters[letter] = 0
             else:
                 used_letters[letter] += 1
-            substitution = str(self.key[letter][used_letters[letter]])
-            substitution = "0" * (self.BITS - len(bin(int(substitution))) + 2) + str(bin(int(substitution)))[2:]
-            ciphertext += substitution
+
+            ciphertext += self.__add_the_non_significant_zeros(
+                self.key[letter][used_letters[letter]]
+            )
 
         return ciphertext
 
+    def __add_the_non_significant_zeros(self, value: int) -> str:
+        substitution = str(value)
+        substitution = "0" * (self.BITS - len(bin(int(substitution))) + 2) + str(bin(int(substitution)))[2:]
+        return substitution
+
     def save_key(self, path: str) -> None:
-        with open(path, "w", encoding="utf-8") as file:
-            for key, value in self.key.items():
-                file.write(
-                    f"{key}: {value}\n"
-                )
+        self.__save_file(path, self.key)
 
     def save_frequency(self, path: str) -> None:
+        self.__save_file(path, self.frequency)
+
+    @staticmethod
+    def __save_file(path: str, dictionary: dict) -> None:
         with open(path, "w", encoding="utf-8") as file:
-            for key, value in self.frequency.items():
+            for key, value in dictionary.items():
                 file.write(
                     f"{key}: {value}\n"
                 )
@@ -150,7 +132,6 @@ if __name__ == "__main__":
     while True:
         user_input = str(input("Текст для шифрования: "))
         encryptor = Encryptor(user_input)
-        # ciphertext = encryptor.encrypt(user_input)
 
         encryptor.save_key("key.txt")
         encryptor.save_frequency("frequency.txt")
@@ -160,4 +141,3 @@ if __name__ == "__main__":
 
         print("Текст в зашифрованном виде: ", encryptor, "\n")
         print("Расшифрованный шифротекст: ", decrypted_text, "\n")
-        # print("Частота символов: ", encryptor.frequency, "\n")
