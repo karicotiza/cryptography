@@ -102,8 +102,11 @@ class Encryptor:
                     f"{key}: {value}\n"
                 )
 
-    def __str__(self):
+    def get_encrypted_text(self):
         return self.encrypt(self.text)
+
+    # def __str__(self):
+    #     return self.encrypt(self.text)
 
 
 class Decryptor:
@@ -141,9 +144,10 @@ if __name__ == "__main__":
 
         encryptor.save_key("key.txt")
         encryptor.save_frequency("frequency.txt")
+        encrypted = encryptor.get_encrypted_text()
 
         decryptor = Decryptor("key.txt")
-        decrypted = decryptor.decrypt(str(encryptor))
+        decrypted = decryptor.decrypt(encrypted)
 
-        print("Текст в зашифрованном виде: ", encryptor, "\n")
+        print("Текст в зашифрованном виде: ", encrypted, "\n")
         print("Расшифрованный шифротекст: ", decrypted, "\n")
