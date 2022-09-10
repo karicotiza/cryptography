@@ -1,21 +1,54 @@
 from random import sample
+from collections import Counter
 
 
 class Encryptor:
-    def __init__(self) -> None:
+    def __init__(self, text: str) -> None:
+        self.text = text
         self.BITS = 17
-        self.LETTER_SUBSTITUTION_SIZE = {
-            2: "хжшюцщэфёъvkxjqz",
-            3: "ыьгзбчйypb",
-            4: "рвлкмдпуяdlcumwfg",
-            5: "оеаинтсetaoinshr",
-        }
-
+        # self.LETTER_SUBSTITUTION_SIZE = {
+        #     2: "хжшюцщэфёъvkxjqz",
+        #     3: "ыьгзбчйypb",
+        #     4: "рвлкмдпуяdlcumwfg",
+        #     5: "оеаинтсetaoinshr",
+        # }
+        self.frequency = Counter()
         self.key: dict = self.__make_key()
 
     def __make_key(self) -> dict:
         encryption_key = dict()
-        for key, value in self.LETTER_SUBSTITUTION_SIZE.items():
+
+        text = [letter for letter in self.text.lower() if letter]
+        text = "".join(text)
+
+        counted_letters = Counter(text)
+        text_length = len(text)
+
+        frequency = {}
+
+        for key, value in counted_letters.items():
+            frequency[key] = counted_letters[key] / (text_length / 100)
+
+        self.frequency = dict((k,round(v, 2)) for k,v in frequency.items())
+
+        size = {
+            2: "",
+            3: "",
+            4: "",
+            5: "",
+        }
+
+        for key, value in frequency.items():
+            if value >= 5:
+                size[5] += key
+            elif value >= 2:
+                size[4] += key
+            elif value >= 1:
+                size[3] += key
+            else:
+                size[2] += key
+
+        for key, value in size.items():
             numbers = sample(
                 range(
                     10 ** (key - 1),
@@ -33,11 +66,29 @@ class Encryptor:
 
         return encryption_key
 
+        # for key, value in self.LETTER_SUBSTITUTION_SIZE.items():
+        #     numbers = sample(
+        #         range(
+        #             10 ** (key - 1),
+        #             10 ** key - 1
+        #         ),
+        #         len(value) * key
+        #     )
+        #
+        #     for index in range(len(value)):
+        #         memory = []
+        #         for _ in range(key):
+        #             memory.append(numbers[0])
+        #             numbers.pop(0)
+        #         encryption_key[value[index]] = memory
+
+        # return encryption_key
+
     def encrypt(self, text: str) -> str:
-        text = [letter for letter in text.lower() if letter.isalpha()]
+        text = [letter for letter in text.lower() if letter]
 
         ciphertext = ""
-        used_letters = dict()
+        used_letters = {}
         for letter in text:
             if (letter not in used_letters) or (used_letters[letter] == len(self.key[letter]) - 1):
                 used_letters[letter] = 0
@@ -55,6 +106,16 @@ class Encryptor:
                 file.write(
                     f"{key}: {value}\n"
                 )
+
+    def save_frequency(self, path: str) -> None:
+        with open(path, "w", encoding="utf-8") as file:
+            for key, value in self.frequency.items():
+                file.write(
+                    f"{key}: {value}\n"
+                )
+
+    def __str__(self):
+        return self.encrypt(self.text)
 
 
 class Decryptor:
@@ -87,14 +148,16 @@ class Decryptor:
 
 if __name__ == "__main__":
     while True:
-        encryptor = Encryptor()
         user_input = str(input("Текст для шифрования: "))
-        ciphertext = encryptor.encrypt(user_input)
+        encryptor = Encryptor(user_input)
+        # ciphertext = encryptor.encrypt(user_input)
 
         encryptor.save_key("key.txt")
+        encryptor.save_frequency("frequency.txt")
 
         decryptor = Decryptor("key.txt")
-        decrypted_text = decryptor.decrypt(ciphertext)
+        decrypted_text = decryptor.decrypt(str(encryptor))
 
-        print("Текст в зашифрованном виде: ", ciphertext, "\n")
+        print("Текст в зашифрованном виде: ", encryptor, "\n")
         print("Расшифрованный шифротекст: ", decrypted_text, "\n")
+        # print("Частота символов: ", encryptor.frequency, "\n")
