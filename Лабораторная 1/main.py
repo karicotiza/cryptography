@@ -6,12 +6,10 @@ class Encryptor:
     def __init__(self, text: str) -> None:
         self.text = text
         self.BITS = 17
-        self.frequency = Counter()
+        self.frequency = self.__count_frequency()
         self.key: dict = self.__make_key()
 
-    def __make_key(self) -> dict:
-        encryption_key = dict()
-
+    def __count_frequency(self) -> dict:
         text = [letter for letter in self.text.lower() if letter]
         text = "".join(text)
 
@@ -23,8 +21,9 @@ class Encryptor:
         for key, value in counted_letters.items():
             frequency[key] = counted_letters[key] / (text_length / 100)
 
-        self.frequency = dict((k,round(v, 2)) for k,v in frequency.items())
+        return dict((k, round(v, 2)) for k, v in frequency.items())
 
+    def __calculate_size_for_letters(self) -> dict:
         size = {
             2: "",
             3: "",
@@ -32,7 +31,7 @@ class Encryptor:
             5: "",
         }
 
-        for key, value in frequency.items():
+        for key, value in self.frequency.items():
             if value >= 5:
                 size[5] += key
             elif value >= 2:
@@ -41,6 +40,13 @@ class Encryptor:
                 size[3] += key
             else:
                 size[2] += key
+
+        return size
+
+    def __make_key(self) -> dict:
+        encryption_key = dict()
+
+        size = self.__calculate_size_for_letters()
 
         for key, value in size.items():
             numbers = sample(
