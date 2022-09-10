@@ -143,7 +143,7 @@ if __name__ == "__main__":
         encryptor.save_frequency("frequency.txt")
 
         decryptor = Decryptor("key.txt")
-        decrypted_text = decryptor.decrypt(str(encryptor))
+        decrypted = decryptor.decrypt(str(encryptor))
 
         print("Текст в зашифрованном виде: ", encryptor, "\n")
-        print("Расшифрованный шифротекст: ", decrypted_text, "\n")
+        print("Расшифрованный шифротекст: ", decrypted, "\n")
